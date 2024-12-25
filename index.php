@@ -42,9 +42,9 @@ function checkBrokenLinks(string $host, string $username, string $password, stri
     $totalLinks = 0;
     $accessibleLinks = 0;
     $brokenLinks = [
-        '404' => 0,
-        '500' => 0,
-        'other' => 0
+        '404' => ['count' => 0, 'urls' => []],
+        '500' => ['count' => 0, 'urls' => []],
+        'other' => ['count' => 0, 'urls' => []]
     ];
 
     // Recorremos los resultados
@@ -52,7 +52,7 @@ function checkBrokenLinks(string $host, string $username, string $password, stri
 
         $url = $row[$column];
 
-        if ($url === "")
+        if (empty($url))
             continue; // Ignoramos los enlaces vacíos
    
         $totalLinks++;
@@ -61,14 +61,17 @@ function checkBrokenLinks(string $host, string $username, string $password, stri
         $status = checkLink($url);
 
         if ($status === null) {
-            $brokenLinks['other']++;
+            $brokenLinks['other']['count']++;
+            $brokenLinks['other']['urls'][] = $url;
         } else {
             switch ($status) {
                 case '404':
-                    $brokenLinks['404']++;
+                    $brokenLinks['404']['count']++;
+                    $brokenLinks['404']['urls'][] = $url;
                     break;
                 case '500':
-                    $brokenLinks['500']++;
+                    $brokenLinks['500']['count']++;
+                    $brokenLinks['500']['urls'][] = $url;
                     break;
                 default:
                     $accessibleLinks++;
@@ -83,16 +86,17 @@ function checkBrokenLinks(string $host, string $username, string $password, stri
     // Imprimimos el resumen
     echo "$totalLinks links verificados:\n";
     echo " - $accessibleLinks links accesibles correctamente\n";
-    echo " - " . $brokenLinks['404'] . " links con errores 404\n";
-    echo " - " . $brokenLinks['500'] . " links con errores 500\n";
-    echo " - " . $brokenLinks['other'] . " links con otros errores\n";
+
+    echo " - " . $brokenLinks['404']['count'] . " links con errores 404: " . implode(", ", $brokenLinks['404']['urls']) . "\n";
+    echo " - " . $brokenLinks['500']['count'] . " links con errores 500: " . implode(", ", $brokenLinks['500']['urls']) . "\n";
+    echo " - " . $brokenLinks['other']['count'] . " links con otros errores: " . implode(", ", $brokenLinks['other']['urls']) . "\n";
 }
 
 // Datos de entrada
 $host = "localhost"; // Host
 $username = "root"; // Usuario
 $password = ""; // Contraseña
-$dbname = "test"; // Base de datos
+$dbname = "ejercicio0"; // Base de datos
 $table = "posts"; // Nombre de la tabla
 $column = "body"; // Nombre del campo que contiene los enlaces
 
