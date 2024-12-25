@@ -7,7 +7,7 @@ function checkLink(string $url): string|null {
         return null; 
     }
 
-    // Obtenemos los headers HTTP
+    // Obtenemos los headers HTTP. get_headers() no lanza excepciones, por lo que usamos el operador de control de errores '@'
     $headers = @get_headers($url);
 
     // Si no se obtienen los headers, el enlace está caído
