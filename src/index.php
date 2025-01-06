@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 // Función para verificar los enlaces
 function checkLink(string $url): string|null {
 
@@ -16,7 +18,7 @@ function checkLink(string $url): string|null {
     }
 
     // Analizamos el código de estado HTTP
-    $statusCode = substr($headers[0], 9, 3);
+    $statusCode = substr((string) $headers[0], 9, 3);
     return $statusCode; // Devuelve el código de estado (ej. '404', '200', etc.)
 }
 
@@ -34,7 +36,7 @@ function checkBrokenLinks(string $host, string $username, string $password, stri
     echo "Conexión exitosa a la base de datos\n";
 
     // Realizamos la consulta para obtener los enlaces
-    $sql = "SELECT $column FROM $table";
+    $sql = sprintf('SELECT %s FROM %s', $column, $table);
     if (!$result = $mysqli->query($sql)) {
         die("Error en la consulta: " . $mysqli->error);
     }
@@ -52,29 +54,30 @@ function checkBrokenLinks(string $host, string $username, string $password, stri
 
         $url = $row[$column];
 
-        if (empty($url))
-            continue; // Ignoramos los enlaces vacíos
+        if (empty($url)) {
+            continue;
+        } // Ignoramos los enlaces vacíos
    
-        $totalLinks++;
+        ++$totalLinks;
 
         // Verificamos el enlace
         $status = checkLink($url);
 
         if ($status === null) {
-            $brokenLinks['other']['count']++;
+            ++$brokenLinks['other']['count'];
             $brokenLinks['other']['urls'][] = $url;
         } else {
             switch ($status) {
                 case '404':
-                    $brokenLinks['404']['count']++;
+                    ++$brokenLinks['404']['count'];
                     $brokenLinks['404']['urls'][] = $url;
                     break;
                 case '500':
-                    $brokenLinks['500']['count']++;
+                    ++$brokenLinks['500']['count'];
                     $brokenLinks['500']['urls'][] = $url;
                     break;
                 default:
-                    $accessibleLinks++;
+                    ++$accessibleLinks;
                     break;
             }
         }
@@ -84,8 +87,9 @@ function checkBrokenLinks(string $host, string $username, string $password, stri
     $mysqli->close();
 
     // Imprimimos el resumen
-    echo "$totalLinks links verificados:\n";
-    echo " - $accessibleLinks links accesibles correctamente\n";
+    echo $totalLinks . ' links verificados:
+';
+    echo " - {$accessibleLinks} links accesibles correctamente\n";
 
     echo " - " . $brokenLinks['404']['count'] . " links con errores 404: " . implode(", ", $brokenLinks['404']['urls']) . "\n";
     echo " - " . $brokenLinks['500']['count'] . " links con errores 500: " . implode(", ", $brokenLinks['500']['urls']) . "\n";
